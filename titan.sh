@@ -1,13 +1,9 @@
 #!/bin/bash
 
-docker stop $(docker ps -q)
-docker rm $(docker ps -a -q)
-
-# 拉取Docker镜像
 docker pull nezha123/titan-edge:latest
 
 # 创建5个容器
-for i in {1..5}
+for i in {1..4}
 do
     # 为每个容器创建一个存储卷
     storage="titan_storage_$i"
@@ -24,6 +20,10 @@ do
     docker exec -it $container_id bash -c "\
         titan-edge bind --hash=EE78736B-11F6-49A1-9752-7E9AFDCA3441 https://api-test1.container1.titannet.io/api/v2/device/binding"
 done
+
+docker ps -q | xargs -I {} docker exec {} sed -i 's/#BandwidthMB = 10/BandwidthMB = 1000/g' /root/.titanedge/config.toml
+docker ps -q | xargs -I {} docker exec {} sed -i 's/#StorageGB = 64/StorageGB = 100/g' /root/.titanedge/config.toml
+docker restart $(docker ps -q)
 
 
 docker ps -q | xargs -I {} docker exec {} sed -i 's/#BandwidthMB = 10/BandwidthMB = 10/g' /root/.titanedge/config.toml
